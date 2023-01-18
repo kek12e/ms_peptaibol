@@ -17,8 +17,8 @@ fqpath="./fastq"	# folder containing fastq files
 R1.pattern="_R1.fastq.gz"	# unique pattern to match your forward reads
 
 # for primer detection before/after cutadapt
-FWD="GCCGGCTGCGACGTGARTCATCGAATCTTTG"   # MARS version
-REV="AGGCAGTCAGCCTCCTCCGCTTATTGATATGC"  # MARS version
+FWD="GCCGGCTGCGACGTGARTCATCGAATCTTTG"   # MARS version (fITS7: GTGARTCATCGAATCTTTG)
+REV="AGGCAGTCAGCCTCCTCCGCTTATTGATATGC"  # MARS version (ITS4: TCCTCCGCTTATTGATATGC)
 
 # path to programs wrapped in this script
 #cutadapt="/home/kkyle/usr/bin/cutadapt"
