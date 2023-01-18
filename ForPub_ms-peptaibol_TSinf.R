@@ -270,6 +270,7 @@ hm %>%
   ggplot(aes(heatmap.x.day,heatmap.y.sampTypeXtreatXantsXrep)) + 
   geom_tile(aes(fill = heatmap.z.trichPerc), color='black') + 
   scale_fill_gradient(low = "lightyellow", high = cbgreen, na.value = "black") +
+  geom_text(aes(label=sprintf("%0.2f", round(heatmap.z.trichPerc, digits = 2)))) +
   theme(
     axis.title.x = element_text(size = 12, color='black'),
     panel.background = element_rect(fill = 'grey90',color='black'),
