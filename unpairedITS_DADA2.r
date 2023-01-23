@@ -12,23 +12,23 @@
 #setwd("/Users/kkyle/ms_peptaibol/TSinfITS/test")		# set your working directory, where you want output and .RData
 
 # getting input files
-fqpath="./fastq"	# folder containing fastq files
+fqpath="../fastq"	# folder containing fastq files
 	# ^don't put trailing '/' for this path!
 R1.pattern="_R1.fastq.gz"	# unique pattern to match your forward reads
 
 # for primer detection before/after cutadapt
-FWD="GCCGGCTGCGACGTGARTCATCGAATCTTTG"   # MARS version (fITS7: GTGARTCATCGAATCTTTG)
-REV="AGGCAGTCAGCCTCCTCCGCTTATTGATATGC"  # MARS version (ITS4: TCCTCCGCTTATTGATATGC)
+FWD="GCCGGCTGCGACGTGARTCATCGAATCTTTG"   # MARS version (fITS7: GTGARTCATCGAATCTTTG)	# i think its 10bp pad, 2bp linker, then fPrim
+REV="AGGCAGTCAGCCTCCTCCGCTTATTGATATGC"  # MARS version (ITS4: TCCTCCGCTTATTGATATGC)	# same here
 
 # path to programs wrapped in this script
 #cutadapt="/home/kkyle/usr/bin/cutadapt"
-cutadapt="/usr/bin/cutadapt"
-TrimmomaticSE="/usr/bin/TrimmomaticSE"
+cutadapt="/home/kkyle/usr/bin/cutadapt"		# klassenlab1
+Trimmomatic="java -jar /usr/local/bin/Trimmomatic-0.39"
 ITSx="/usr/local/bin/ITSx"
 
 
 # path to UNITE fungal db for taxa calling
-unite.ref="./sh_general_release_dynamic_s_04.02.2020.fasta"
+unite.ref="~/ms_peptaibol/sh_general_release_dynamic_s_04.02.2020.fasta"
 
 ######################################################
 
@@ -56,18 +56,32 @@ sample.names <- unname(sapply(fnFs, get.sample.name))
 head(cbind(sample.names,fnFs))
 
 ## ----Trimmomatic--------------------------------------------------------------------------------------------------------------
-trimm.flags = paste("SLIDINGWINDOW:5:20", "MINLEN:125", "-threads 4")
-#for i in $(ls /sda/data/KEKdecon3TimeSeriesTestInfITS/Samples/TimeSeriesInfection/fastq/*R1.fastq.gz); do j=`basename -s .fastq.gz $i`; TrimmomaticSE $i ${j}_Trimm.SW5.20.min125.fq.gz SLIDINGWINDOW:5:20 MINLEN:125 -threads 4 -trimlog TSinfITS_r1_trimmSW5.20.min125.trimlog; done
+# output directory
+fqpath.trimm <- file.path("./trimmomatic")
+if(!dir.exists(fqpath.trimm)) dir.create(fqpath.trimm)
+fqpath.trimm.log <- file.path(fqpath.trimm,"log")
+if(!dir.exists(fqpath.trimm.log)) dir.create(fqpath.trimm.log)
+fqpath.trimm.out <- file.path(fqpath.trimm,"out")
+if(!dir.exists(fqpath.trimm.out)) dir.create(fqpath.trimm.out)
+
+# outfile names
+fnFs.trimm <- file.path(fqpath.trimm, paste0(sample.names,"_R1_Trimm0.39SE_SW5.20_min125.fastq.gz"))
+fnFs.trimlog <- file.path(fqpath.trimm.log, paste0(sample.names,"_R1_Trimm0.39SE_SW5.20_min125.trimlog"))
+fnFs.trimm.out <- file.path(fqpath.trimm.out, paste0(sample.names,"_R1_Trimm0.39SE_SW5.20_min125.stdoutstderr"))
+# parameters for Trimmomatic command
+trimm.flags = paste("SE","-threads 8","-trimlog") 	# SE is unpaired mode
+trimm.steps = paste("SLIDINGWINDOW:5:20", "MINLEN:125")
+
 for(i in seq_along(fnFs)) {
-	j=paste0(fqpath, "/", sample.names[i],"_R1_TrimmSE_SW5.20_min125.fastq.gz")
-	system2(TrimmomaticSE, 
-		args = c(	fnFs[i], 		# input
-  					j, 				# output
-  					trimm.flags
-  		),
-  		stdout = paste0(sample.names[i],".TrimmSE_SW5.20_min125.out"), 
-  		stderr = paste0(sample.names[i],".TrimmSE_SW5.20_min125.err")
-  ) 
+	system(paste(Trimmomatic,
+					trimm.flags,		
+					fnFs.trimlog[i],	# file name for trimlog output
+					fnFs[i], 			# input
+  					fnFs.trimm[i], 		# output
+  					trimm.steps,
+  					"2>&1 >",			# send stdout and stderr to same file
+  					fnFs.trimm.out[i]
+	) )  
 }
 
 ## ----identify/remove primers------------------------------------------------------------------------------------------------
@@ -92,9 +106,16 @@ FWD.orients <- allOrients(FWD)
 REV.orients <- allOrients(REV)
 
 
-## ---- filter out any reads with Ns (necessary for dada function) -----------------------------------------------------------------------
-fnFs.filtN <- file.path(fqpath, "filtN", paste0(sample.names, "_filtN_R1.fastq.gz")) # Put N-filterd files in filtN/ subdirectory
-filterAndTrim(fnFs, fnFs.filtN, maxN = 0, multithread = TRUE,compress=T)
+## ---- filter out reads w/ Ns (req for dada function.. and apparently primer searching..?) -----------------------------------------------------------------------
+################## seems like filtering any read with any Ns here before doing 
+################## any sort of QC is harsh? is this where very very short reads 
+################## like trich that just have garbage at the ends (is this garbage
+################## a lot of Ns??) get filtered out?
+################## Honestly since we run Trimmomatic first I'm not sure cutadapt 
+################## is even necessary. Should we add ILLUMINACLIP to trimm cmd?
+fqpath.filtN <- file.path(fqpath.trimm, "filtN")
+fnFs.filtN <- file.path(fqpath.filtN, gsub("\\.fastq\\.gz$","_filtN.fastq.gz",basename(fnFs.trimm))) # Put N-filterd files in filtN/ subdirectory
+filterAndTrim(fnFs.trimm, fnFs.filtN, maxN = 0, multithread = TRUE,compress=T)
 
 
 ## ----check where primers are detected in reads------------------------------------------------------------------------------------------------
@@ -102,14 +123,22 @@ filterAndTrim(fnFs, fnFs.filtN, maxN = 0, multithread = TRUE,compress=T)
 rbind(FWD.ForwardReads = sapply(FWD.orients, primerHits, fn = fnFs.filtN[[1]]), 
       REV.ForwardReads = sapply(REV.orients, primerHits, fn = fnFs.filtN[[1]]))
 
+	# welp now no primers detected... dont need to cutadapt?
+
+	# just curious what looks like before filtN      
+#rbind(FWD.ForwardReads = sapply(FWD.orients, primerHits, fn = fnFs[[1]]), 
+#    FWD.ReverseReads = sapply(FWD.orients, primerHits, fn = fnRs[[1]]), 
+#    REV.ForwardReads = sapply(REV.orients, primerHits, fn = fnFs[[1]]), 
+#    REV.ReverseReads = sapply(REV.orients, primerHits, fn = fnRs[[1]]))
+
 
 ## ----remove primers with cutadapt ------------------------------------------------------------------------------------------------
 system2(cutadapt, args = "--version") # Run shell commands from R
 # setup cutadapt output dir and output filenames
-fqpath.cut <- file.path(fqpath, "cutadapt")
+fqpath.cut <- file.path(fqpath.filtN, "cutadapt")
 if(!dir.exists(fqpath.cut)) dir.create(fqpath.cut)
-fnFs.cut <- file.path(fqpath.cut, paste0(sample.names, "_filtN_clip_R1.fastq"))
-if(!dir.exists(fqpath.cut)) dir.create(fqpath.cut)
+fnFs.cut <- file.path(fqpath.cut, gsub("\\.fastq\\.gz$","_clip.fastq",basename(fnFs.filtN))) 
+															# note we dont want zipped after clipping
 
 
 # setting reverse complements of primers
@@ -126,7 +155,7 @@ for(i in seq_along(fnFs)) {
                 "-m", 1, # prevent zero-length seqs in output which mess up plotQualityProfile
                 "-o", fnFs.cut[i],  # output files
                 fnFs.filtN[i] # input files
-                #,"-j 0" # auto-detect cores... apparently parallel not supported on python 2... :(
+                ,"-j 0" # auto-detect cores... apparently parallel not supported on python 2... :(
   	), 
   	stdout = paste0(fnFs.cut[i],".cutadapt.out"), 
   	stderr = paste0(fnFs.cut[i],".cutadapt.err")
@@ -136,11 +165,11 @@ for(i in seq_along(fnFs)) {
 ## ----check for no more primers detected after cutadapt------------------------------------------------------------------------------------
 rbind(FWD.ForwardReads = sapply(FWD.orients, primerHits, fn = fnFs.cut[[1]]), 
       REV.ForwardReads = sapply(REV.orients, primerHits, fn = fnFs.cut[[1]]))
+	# i mean there were none to start after filtN but ok still none... 
 
 ## ----setting clipped filenames and get sample names-------------------------------------------------------------------------------------
 # Forward and reverse fastq filenames have the format:
-cutFs <- sort(list.files(fqpath.cut, pattern = "_R1.fastq$", full.names = TRUE))
-
+cutFs <- sort(list.files(fqpath.cut, pattern = ".*R1.*clip\\.fastq$", full.names = TRUE))
 
 ## ----forward clipped qual plots----------------------------------------------------------------
 pdf("cutFs.qualProf.pdf")
@@ -151,12 +180,14 @@ dev.off()
 
 
 ## ----filter and trim --------------------------------------------------------------------------------------------------------
-filtFs <- file.path(fqpath.cut, "filtered", paste0(sample.names, "_filtN_clip_filt_R1.fastq.gz"))	# end .gz because setting                                                                                          # compress=T in filterAndTrim here
+filtFs <- file.path(fqpath.cut, "filtered", gsub("\\.fastq$","_filt.fastq.gz",basename(cutFs)))	
+															# end .gz because setting compress to TRUE in filterAndTrim                                                                                         # compress=T in filterAndTrim here
 names(filtFs) <- sample.names
 
 # written to file and commented out so dont have to redo a bunch, just read in filterAndTrim.out
 out <- filterAndTrim(cutFs, filtFs, maxN = 0, maxEE = 2, 
-                      truncQ = 2, minLen = 50, rm.phix = TRUE, compress = TRUE, multithread = TRUE)  # on windows, set multithread = FALSE
+                      truncQ = 2, minLen = 50, rm.phix = TRUE, 
+                      compress = TRUE, multithread = TRUE)  # on windows, set multithread = FALSE
 write.table(out, "filterAndTrim.out")
 #out = as.matrix(read.table("filterAndTrim.out"))
 
@@ -204,6 +235,7 @@ track <- cbind(out, sapply(dadaFs, getN), rowSums(seqtab.nochim))
 colnames(track) <- c("input", "filtered", "denoisedF", "nonchim")
 rownames(track) <- sample.names
 head(track)
+write.csv(track,file = "track.csv")
 pdf("track.barplot.pdf",width=12,height=6)
 barplot(t(track),beside=T,legend.text=T,las=2,cex.names=1,col=c("black","red","blue","green"),
 		space=c(0.2,2),ylim=c(0,max(t(track))),args.legend = list(cex=0.6))
