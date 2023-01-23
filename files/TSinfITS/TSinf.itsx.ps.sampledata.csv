@@ -1,0 +1,47 @@
+"","Sample_Name","quant_reading","sample_descrip","sample_type","treatment","ants","replicate","day","Sample_or_Control","batch","is.neg"
+"NFH20","NFH20",0,"plate_blank","blank",NA,NA,NA,NA,"Control Sample",1,TRUE
+"TSe01","TSe01",8.85,"PBS-R2-D0+ANTS","fungus garden","PBS","+","r2",0,"True Sample",1,FALSE
+"TSe02","TSe02",12.32,"T-R2-D0+ANTS","fungus garden","Trichoderma","+","r2",0,"True Sample",1,FALSE
+"TSe03","TSe03",14.23,"PBS-R1-D2","fungus garden","PBS","-","r1",2,"True Sample",1,FALSE
+"TSe04","TSe04",2.22,"T-R1-D4+ANTS Trash","trash","Trichoderma","+","r1",4,"True Sample",1,FALSE
+"TSe05","TSe05",8.71,"T-R2-D4+ANTS","fungus garden","Trichoderma","+","r2",4,"True Sample",1,FALSE
+"TSe06","TSe06",5.54,"DRY-R2-D4","fungus garden","NT","-","r2",4,"True Sample",1,FALSE
+"TSe07","TSe07",14.27,"PBS-R2-D2+ANTS","fungus garden","PBS","+","r2",2,"True Sample",1,FALSE
+"TSe08","TSe08",14.03,"DRY-R1-D4+ANTS","fungus garden","NT","+","r1",4,"True Sample",1,FALSE
+"TSe09","TSe09",4.38,"DRY-R2-D4+ANTS Trash","trash","NT","+","r2",4,"True Sample",1,FALSE
+"TSe10","TSe10",7.06,"PBS-R2-D2","fungus garden","PBS","-","r2",2,"True Sample",1,FALSE
+"TSe11","TSe11",12.62,"PBS-R1-D2+ANTS","fungus garden","PBS","+","r1",2,"True Sample",1,FALSE
+"TSe12","TSe12",15.34,"DRY-R1-D2+ANTS","fungus garden","NT","+","r1",2,"True Sample",1,FALSE
+"TSe13","TSe13",3.69,"DRY-R1-D0","fungus garden","NT","-","r1",0,"True Sample",1,FALSE
+"TSe14","TSe14",13.41,"DRY-R2-D2+ANTS","fungus garden","NT","+","r2",2,"True Sample",1,FALSE
+"TSe15","TSe15",10.54,"T-R2-D0","fungus garden","Trichoderma","-","r2",0,"True Sample",2,FALSE
+"TSe16","TSe16",11.01,"T-R2-D4+ANTS Trash","trash","Trichoderma","+","r2",4,"True Sample",2,FALSE
+"TSe17","TSe17",9.89,"T-R2-D4","fungus garden","Trichoderma","-","r2",4,"True Sample",2,FALSE
+"TSe18","TSe18",9.36,"T-R1-D4","fungus garden","Trichoderma","-","r1",4,"True Sample",2,FALSE
+"TSe19","TSe19",8.82,"DRY-R1-D0+ANTS","fungus garden","NT","+","r1",0,"True Sample",2,FALSE
+"TSe20","TSe20",7.74,"DRY-R2-D4+ANTS","fungus garden","NT","+","r2",4,"True Sample",2,FALSE
+"TSe21","TSe21",8.36,"PBS-R1-D4+ANTS Trash","trash","PBS","+","r1",4,"True Sample",2,FALSE
+"TSe22","TSe22",6.45,"PBS-R1-D0","fungus garden","PBS","-","r1",0,"True Sample",2,FALSE
+"TSe23","TSe23",6.06,"T-R1-D0","fungus garden","Trichoderma","-","r1",0,"True Sample",2,FALSE
+"TSe24","TSe24",8.62,"PBS-R1-D4","fungus garden","PBS","-","r1",4,"True Sample",2,FALSE
+"TSe25","TSe25",9.01,"PBS-R2-D4+ANTS Trash","trash","PBS","+","r2",4,"True Sample",2,FALSE
+"TSe26","TSe26",18.52,"PBS-R1-D4+ANTS","fungus garden","PBS","+","r1",4,"True Sample",2,FALSE
+"TSe27","TSe27",5.36,"DRY-R2-D2","fungus garden","NT","-","r2",2,"True Sample",2,FALSE
+"TSe28","TSe28",7.58,"T-R2-D2","fungus garden","Trichoderma","-","r2",2,"True Sample",2,FALSE
+"TSe29","TSe29",5.94,"DRY-R1-D4+ANTS Trash","trash","NT","+","r1",4,"True Sample",3,FALSE
+"TSe30","TSe30",17.69,"PBS-R2-D4+ANTS","fungus garden","PBS","+","r2",4,"True Sample",3,FALSE
+"TSe31","TSe31",15.56,"T-R2-D2+ANTS","fungus garden","Trichoderma","+","r2",2,"True Sample",3,FALSE
+"TSe32","TSe32",14.08,"T-R1-D0+ANTS","fungus garden","Trichoderma","+","r1",0,"True Sample",3,FALSE
+"TSe33","TSe33",17.69,"T-R1-D2+ANTS","fungus garden","Trichoderma","+","r1",2,"True Sample",3,FALSE
+"TSe34","TSe34",11.6,"DRY-R2-D0+ANTS","fungus garden","NT","+","r2",0,"True Sample",3,FALSE
+"TSe35","TSe35",8.96,"DRY-R1-D2","fungus garden","NT","-","r1",2,"True Sample",3,FALSE
+"TSe36","TSe36",6.45,"T-R1-D2","fungus garden","Trichoderma","-","r1",2,"True Sample",3,FALSE
+"TSe37","TSe37",7.67,"DRY-R2-D0","fungus garden","NT","-","r2",0,"True Sample",3,FALSE
+"TSe38","TSe38",7.16,"DRY-R1-D4","fungus garden","NT","-","r1",4,"True Sample",3,FALSE
+"TSe39","TSe39",8,"PBS-R2-D4","fungus garden","PBS","-","r2",4,"True Sample",3,FALSE
+"TSe40","TSe40",7.24,"PBS-R2-D0","fungus garden","PBS","-","r2",0,"True Sample",3,FALSE
+"TSe41","TSe41",11.87,"PBS-R1-D0+ANTS","fungus garden","PBS","+","r1",0,"True Sample",3,FALSE
+"TSe42","TSe42",11.83,"T-R1-D4+ANTS","fungus garden","Trichoderma","+","r1",4,"True Sample",3,FALSE
+"TSNC1","TSNC1",0,"TSe01-14_blank","blank",NA,NA,NA,NA,"Control Sample",1,TRUE
+"TSNC2","TSNC2",0,"TSe15-28_blank","blank",NA,NA,NA,NA,"Control Sample",2,TRUE
+"TSNC3","TSNC3",0,"TSe29-42_blank","blank",NA,NA,NA,NA,"Control Sample",3,TRUE
