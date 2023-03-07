@@ -11,7 +11,7 @@
 
 #install.packages("devtools")
 library("devtools")
-devtools::install_github("benjjneb/dada2", ref="v1.16") # change the ref argument to get other versions
+#devtools::install_github("benjjneb/dada2", ref="v1.16") # change the ref argument to get other versions
 if (!requireNamespace("BiocManager", quietly = TRUE))
   install.packages("BiocManager")
 # BiocManager::install("phyloseq")
