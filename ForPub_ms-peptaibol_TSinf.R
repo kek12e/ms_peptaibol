@@ -38,8 +38,14 @@ library(hrbrthemes)
 set.seed(14)
 
 # paths setup
+ps.path="ps.RDS"
+itsx.path="ITSx_psASV.ITS2.tsv"
+md.path="../TSinf.itsx.ps.sampledata.csv"
 unite.ref="../../sh_general_release_dynamic_s_04.02.2020.fasta"
-metadat=read.csv("../TSinf.itsx.ps.sampledata.csv",header = T,row.names = 1)
+
+# read in metdata file... should come up with standard format for this. 
+#                         Mainly just the rownames/samplenames that matter for phyloseq
+metadat=read.csv(md.path, header=TRUE, colClasses="character",strip.white=TRUE, row.names=1)
 
 # colorblind friendly pallete
 cborange="#E69F00";cbblue="#0072B2";cbdorange="#D55E00";cbgreen="#009E73";cbyellow="#F0E442";cblblue="#56B4E9";cbpink="#CC79A7";cbblack="#000000";cbgray="#999999"
@@ -49,44 +55,60 @@ cborange="#E69F00";cbblue="#0072B2";cbdorange="#D55E00";cbgreen="#009E73";cbyell
 #############################
 
 # load phyloseq object generated in unpairedITS_dada2.R
-ps = readRDS("ps.RDS")
-asvs.its2=read.csv("ITSx_psASV.ITS2.tsv",sep = "\t",header = F)
+ps = readRDS(ps.path)
+# add sample_data
+if( length( which( rownames(metadat) != sample_names(ps) ) ) == 0 ) {
+  sample_data(ps) = metadat
+} else { 
+  print("ERROR: metadata rownames not equivalent to otu_tab rownames (samplenames)")
+}
+
+# get ITSx treated asvs
+asvs.its2=read.csv( itsx.path, 
+                    sep = "\t", 
+                    header=FALSE, 
+                    colClasses="character", 
+                    strip.white=TRUE
+                  )
 
 # Check if any ASVs did not pass ITSx and filter those out of phyloseq object:
 setdiff(taxa_names(ps),asvs.its2$V1)
 ps=prune_taxa(asvs.its2$V1,ps)
 
-# ITSx processing
+### merge ITSx caused ASV dups and remove duplicate ASVs from ITSx refseq table
 # duplicated() determines which elements of a vector or data frame are duplicates of elements with smaller subscripts
 w.dup=which(duplicated(asvs.its2$V3))           # these indices are duplicates of smaller indices
 dup.m=match(asvs.its2[w.dup,]$V3,asvs.its2$V3)  # these are the indices that the dups match to
-cbind(w.dup,dup.m)
-asvs.its2[w.dup,]$V3 == asvs.its2[dup.m,]$V3
+asvs.its2[w.dup,]$V3 == asvs.its2[dup.m,]$V3    # check
 
-merge.ps=ps
-# merged taxa/otu tables
-for(i in seq(w.dup)){
-  print(taxa_names(ps)[c(dup.m[i],w.dup[i])])           # match results must come first so duplicates are merged 
-  # into the smaller indexed ASV
-  merge.ps=merge_taxa(merge.ps,taxa_names(ps)[c(w.dup[i],dup.m[i])])
+if( length(w.dup) > 0 ) {
+  for(i in seq_along(w.dup)){
+    # print(taxa_names(ps)[c(dup.m[i],w.dup[i])])          # match results must come first so duplicates are merged 
+    # into the smaller indexed ASV
+    merge.ps=merge_taxa(merge.ps,taxa_names(ps)[c(w.dup[i],dup.m[i])])
+  }
+  seqs.itsx = Biostrings::DNAStringSet(asvs.its2[-w.dup,]$V3)
+} else {
+  seqs.itsx = Biostrings::DNAStringSet(asvs.its2$V3)
 }
-
 otu.merge=otu_table(merge.ps)
-# remove duplicate ASVs from ITSx refseq table
-seqs.itsx = Biostrings::DNAStringSet(asvs.its2[-w.dup,]$V3)
 names(seqs.itsx) = taxa_names(otu.merge)
 
 # recall taxonomy for ITSx treated ASVs
 x1 = otu.merge
 colnames(x1) = as.character(seqs.itsx)
-# unite.ref="../../sh_general_release_dynamic_s_04.02.2020.fasta" # moved to setup block
 x1.tax=assignTaxonomy(x1,unite.ref,multithread = T, tryRC = T)
 rownames(x1.tax) = colnames(otu.merge)
 
 # remake phyloseq object with new ITSx seqs and merged ASV3/5
-ps.itsx <- phyloseq(tax_table(x1.tax), otu_table(otu.merge, taxa_are_rows = F))
-ps.itsx <- merge_phyloseq(ps.itsx,seqs.itsx)
+ps.itsx <- phyloseq(tax_table(x1.tax), 
+                    otu_table(otu.merge, taxa_are_rows = F), 
+                    refseq(seqs.itsx)
+                   )
 taxa_names(ps.itsx) = taxa_names(otu.merge)
+
+# save new phyloseq obj
+saveRDS(ps.itsx,"ps.itsx.RDS")
 
 
 # set genus name to "Cultivar Fungus" if unclassified f__Agaricaceae
